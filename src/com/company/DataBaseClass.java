@@ -2,51 +2,58 @@ package com.company;
 
 import java.sql.*;
 
-public class DataBaseClass<statement> {
-    private String URl;
-    private String user;
+public class DataBaseClass implements AutoCloseable {
+    private static final String URl = "jdbc:mysql://localhost/football";
+    ;
+    private static final String USER = "root";
+    private static final String PASSWORD = "";
     private String password;
+    private Connection connection;
 
-    DataBaseClass(String URl, String user, String password) {
-        this.URl = URl;
-        this.user = user;
-        this.password = password;
-    }
+    private static DataBaseClass instance;
 
-    public void dataBaseConnection(String request) {
-
-        try (Connection connect = DriverManager.getConnection(URl, user, password)) {
-            try (Statement statement = connect.createStatement()) {
-                try (ResultSet result = statement.executeQuery(request)) {
-                    resultOfQuary(result);
-                }
-            } catch (SQLException e) {
-                e.getMessage();
-            }
-        } catch (SQLException e) {
-            System.out.println("Can't connect!!!");
-        }
-
-    }
-
-    public void resultOfQuary(ResultSet result) {
+    private DataBaseClass() {
         try {
-            while (result.next()) {
-                StringBuilder row = new StringBuilder();
-                int id = result.getInt("id_p");
-                row.append(id);
-                row.append(" ");
-                String name = result.getString("name_p");
-                int age = result.getInt("age");
-                row.append(name);
-                row.append(" ");
-                row.append(age);
-                System.out.println(row);
-            }
+            connection = DriverManager.getConnection(URl, USER, PASSWORD);
         } catch (SQLException e) {
-           System.out.println("Can't show results of your quary!");
+            e.printStackTrace();
         }
     }
 
+    public void addPlayer(int id, String name_p, Integer age, int id_fc) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO players  " +
+                " (id_p, name_p, age, id_fc) VALUES (?, ?, ?,?)")) {
+            preparedStatement.setInt(1, id);
+            preparedStatement.setString(2, name_p);
+            preparedStatement.setInt(3, age);
+            preparedStatement.setInt(4, id_fc);
+            preparedStatement.execute();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public static DataBaseClass getInstance() {
+        if (instance == null) {
+            instance = new DataBaseClass();
+        }
+        return instance;
+    }
+
+    public void updatePlayer(int id, int id_fc) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement("UPDATE  players SET id_fc=? WHERE id_p=?")) {
+            preparedStatement.setInt(1, id_fc);
+            preparedStatement.setInt(2, id);
+            preparedStatement.execute();
+        } catch (SQLException e) {
+            System.out.println("Can't execute the update query!"+e.getMessage());
+        }
+
+    }
+
+    @Override
+    public void close() throws SQLException {
+        connection.close();
+    }
 
 }
