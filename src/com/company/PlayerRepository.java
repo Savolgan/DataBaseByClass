@@ -21,7 +21,6 @@ public class PlayerRepository implements AutoCloseable {
     public void addPlayer(String name_p, Integer age, int id_fc) {
         try (PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO players  " +
                 " ( name_p, age, id_fc) VALUES (?, ?, ?)")) {
-
             preparedStatement.setString(1, name_p);
             preparedStatement.setInt(2, age);
             preparedStatement.setInt(3, id_fc);
