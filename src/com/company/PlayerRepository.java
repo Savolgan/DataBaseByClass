@@ -50,7 +50,6 @@ public class PlayerRepository implements AutoCloseable {
         }
 
     }
-
     @Override
     public void close() throws SQLException {
         connection.close();
