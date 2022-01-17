@@ -3,27 +3,26 @@ package com.company.model;
 import java.time.LocalDate;
 
 public class Player {
-    private Integer id_p;
-    private String name_p;
+    private Integer idP;
+    private String nameP;
     private Integer age;
-    private Integer id_fc;
     private LocalDate dateOfBirth;
     private FootballClub footballClub;
 
-    public Integer getId_p() {
-        return id_p;
+    public Integer getIdP() {
+        return idP;
     }
 
-    public void setId_p(Integer id_p) {
-        this.id_p = id_p;
+    public void setIdP(Integer idP) {
+        this.idP = idP;
     }
 
-    public String getName_p() {
-        return name_p;
+    public String getNameP() {
+        return nameP;
     }
 
-    public void setName_p(String name_p) {
-        this.name_p = name_p;
+    public void setNameP(String nameP) {
+        this.nameP = nameP;
     }
 
     public Integer getAge() {
@@ -34,13 +33,6 @@ public class Player {
         this.age = age;
     }
 
-    public Integer getId_fc() {
-        return id_fc;
-    }
-
-    public void setId_fc(Integer id_fc) {
-        this.id_fc = id_fc;
-    }
 
     public LocalDate getDateOfBirth() {
         return dateOfBirth;
@@ -60,6 +52,6 @@ public class Player {
 
     @Override
     public String toString() {
-        return String.format("Player: id_p = %s,name_p =%s, age =%s, id_fc =%s, date_of_birth =%s, club_name=%s", id_p, name_p, age, id_fc, dateOfBirth, footballClub.getName_fc());
+        return String.format("Player: id_p = %s,name_p =%s, age =%s,  date_of_birth =%s, club_name=%s", idP, nameP, age, dateOfBirth, footballClub.getNameFc());
     }
 }

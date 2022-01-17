@@ -1,36 +1,36 @@
 package com.company.model;
 
 public class FootballClub {
-    private Integer id_fc;
-    private String name_fc;
-    private Integer year_birth;
+    private Integer idFc;
+    private String nameFc;
+    private Integer yearBirth;
 
-    public Integer getId_fc() {
-        return id_fc;
+    public Integer getIdFc() {
+        return idFc;
     }
 
-    public void setId_fc(Integer id_fc) {
-        this.id_fc = id_fc;
+    public void setIdFc(Integer idFc) {
+        this.idFc = idFc;
     }
 
-    public String getName_fc() {
-        return name_fc;
+    public String getNameFc() {
+        return nameFc;
     }
 
-    public void setName_fc(String name_fc) {
-        this.name_fc = name_fc;
+    public void setNameFc(String nameFc) {
+        this.nameFc = nameFc;
     }
 
-    public Integer getYear_birth() {
-        return year_birth;
+    public Integer getYearBirth() {
+        return yearBirth;
     }
 
-    public void setYear_birth(Integer year_birth) {
-        this.year_birth = year_birth;
+    public void setYearBirth(Integer yearBirth) {
+        this.yearBirth = yearBirth;
     }
 
     @Override
     public String toString() {
-        return String.format("Footbal club: id_fc = %s,name_fc=%s, year_birth =%s", id_fc, name_fc, year_birth);
+        return String.format("Footbal club: idFc  = %s,name_fc=%s, year_birth =%s", idFc , nameFc, yearBirth);
     }
 }

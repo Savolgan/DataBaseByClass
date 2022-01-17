@@ -5,7 +5,7 @@ import com.company.model.FootballClub;
 import java.sql.*;
 
 
-public class FootballClubRepository implements AutoCloseable {
+public class FootballClubRepository {
     private static FootballClubRepository instance;
 
     public static FootballClubRepository getInstance() {
@@ -20,13 +20,13 @@ public class FootballClubRepository implements AutoCloseable {
 
         try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("INSERT INTO foot_clubs  " +
                 " ( name_fc,year_birth) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS)) {
-            preparedStatement.setString(1, footballClub.getName_fc());
-            preparedStatement.setInt(2, footballClub.getYear_birth());
+            preparedStatement.setString(1, footballClub.getNameFc());
+            preparedStatement.setInt(2, footballClub.getYearBirth());
             preparedStatement.execute();
 
             try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
-                    footballClub.setId_fc(generatedKeys.getInt(1));
+                    footballClub.setIdFc(generatedKeys.getInt(1));
                 } else {
                     throw new SQLException("Creating player failed. No id_p obtained");
                 }
@@ -48,20 +48,14 @@ public class FootballClubRepository implements AutoCloseable {
 
             if (result.next()) {
                 footballClub = new FootballClub();
-                footballClub.setId_fc(result.getInt("id_fc"));
-                footballClub.setName_fc(result.getNString("name_fc"));
-                footballClub.setYear_birth(result.getInt("year_birth"));
+                footballClub.setIdFc(result.getInt("id_fc"));
+                footballClub.setNameFc(result.getNString("name_fc"));
+                footballClub.setYearBirth(result.getInt("year_birth"));
 
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage() + " Not getById");
         }
         return footballClub;
-    }
-
-
-    @Override
-    public void close() throws SQLException {
-        ConnectionHolder.getConnection().close();
     }
 }

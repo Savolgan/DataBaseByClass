@@ -6,7 +6,7 @@ import java.sql.*;
 import java.time.Instant;
 import java.time.ZoneId;
 
-public class PlayerRepository implements AutoCloseable {
+public class PlayerRepository  {
 
     private static PlayerRepository instance;
 
@@ -21,15 +21,15 @@ public class PlayerRepository implements AutoCloseable {
     public Player addPlayer(Player player) throws SQLException {
         try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("INSERT INTO players  " +
                 " ( name_p, age, id_fc, date_of_birth) VALUES (?, ?, ?,?)", Statement.RETURN_GENERATED_KEYS)) {
-            preparedStatement.setString(1, player.getName_p());
+            preparedStatement.setString(1, player.getNameP());
             preparedStatement.setInt(2, player.getAge());
-            preparedStatement.setInt(3, player.getFootballClub().getId_fc());
+            preparedStatement.setInt(3, player.getFootballClub().getIdFc());
             preparedStatement.setDate(4, Date.valueOf(player.getDateOfBirth()));
             preparedStatement.execute();
 
             try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
-                    player.setId_p(generatedKeys.getInt(1));
+                    player.setIdP(generatedKeys.getInt(1));
                 } else {
                     throw new SQLException("Creating player failed. No id_p obtained");
                 }
@@ -50,10 +50,10 @@ public class PlayerRepository implements AutoCloseable {
 
             if (result.next()) {
                 player = new Player();
-                player.setId_p(result.getInt("id_p"));
-                player.setName_p(result.getNString("name_p"));
+                player.setIdP(result.getInt("id_p"));
+                player.setNameP(result.getNString("name_p"));
                 player.setAge(result.getInt("age"));
-                player.setId_fc(result.getInt("id_fc"));
+
                 player.setDateOfBirth(Instant.ofEpochMilli(result.getDate("date_of_birth").getTime())
                         .atZone(ZoneId.systemDefault())
                         .toLocalDate());
@@ -78,13 +78,6 @@ public class PlayerRepository implements AutoCloseable {
             System.out.println("Can't execute the update query!" + e.getMessage());
         }
 
-    }
-
-
-
-    @Override
-    public void close() throws SQLException {
-        ConnectionHolder.getConnection().close();
     }
 
 }

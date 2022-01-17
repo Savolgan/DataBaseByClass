@@ -15,25 +15,23 @@ public class Main {
         Player player = PlayerRepository.getInstance().getByID(3);
         System.out.println(player);
 
-       // createFootballClub();
+        // createFootballClub();
         FootballClub footballClub = FootballClubRepository.getInstance().getByID(1);
         System.out.println(footballClub);
     }
 
     private static void createPlayer() throws SQLException {
         Player player = new Player();
-        player.setName_p("Oooo");
+        player.setNameP("Oooo");
         player.setAge(55);
-        player.setId_fc(5);
         player.setDateOfBirth(LocalDate.of(1966, 10, 16));
-
         PlayerRepository.getInstance().addPlayer(player);
     }
 
     private static void createFootballClub() {
         FootballClub footballClub = new FootballClub();
-        footballClub.setName_fc("New");
-        footballClub.setYear_birth(5);
+        footballClub.setNameFc("New");
+        footballClub.setYearBirth(5);
         FootballClubRepository.getInstance().addFootballClub(footballClub);
     }
 
