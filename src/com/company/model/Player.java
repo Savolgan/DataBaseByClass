@@ -6,6 +6,7 @@ public class Player {
     private Integer idP;
     private String nameP;
     private Integer age;
+    private Integer idFootballClub;
     private LocalDate dateOfBirth;
     private FootballClub footballClub;
 
@@ -48,6 +49,14 @@ public class Player {
 
     public void setFootballClub(FootballClub footballClub) {
         this.footballClub = footballClub;
+    }
+
+    public Integer getIdFootballClub() {
+        return idFootballClub;
+    }
+
+    public void setIdFootballClub(Integer idFootballClub) {
+        this.idFootballClub = idFootballClub;
     }
 
     @Override

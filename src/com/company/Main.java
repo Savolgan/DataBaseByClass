@@ -12,12 +12,15 @@ public class Main {
 
     public static void main(String[] args) throws SQLException {
         //createPlayer();
-        Player player = PlayerRepository.getInstance().getByID(3);
+        Player player = PlayerRepository.getInstance().getByID(1);
         System.out.println(player);
+        updatePlayer();
 
         // createFootballClub();
         FootballClub footballClub = FootballClubRepository.getInstance().getByID(1);
         System.out.println(footballClub);
+
+
     }
 
     private static void createPlayer() throws SQLException {
@@ -35,5 +38,14 @@ public class Main {
         FootballClubRepository.getInstance().addFootballClub(footballClub);
     }
 
+    private static void updatePlayer() {
+        Player player = new Player();
+        player.setNameP("Oooo111");
+        player.setAge(55);
+        player.setIdP(1);
+        player.setIdFootballClub(2);
+        player.setDateOfBirth(LocalDate.of(1966, 10, 16));
+        PlayerRepository.getInstance().updatePlayer(player);
+    }
 
 }

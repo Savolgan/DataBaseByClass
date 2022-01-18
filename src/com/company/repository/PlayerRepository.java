@@ -6,7 +6,7 @@ import java.sql.*;
 import java.time.Instant;
 import java.time.ZoneId;
 
-public class PlayerRepository  {
+public class PlayerRepository {
 
     private static PlayerRepository instance;
 
@@ -41,6 +41,7 @@ public class PlayerRepository  {
         return player;
     }
 
+
     public Player getByID(int id) {
         Player player = null;
         try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("SELECT id_p, name_p, age, id_fc, date_of_birth FROM players"
@@ -66,18 +67,19 @@ public class PlayerRepository  {
     }
 
 
-    public void updatePlayer(int id, String name, int age, int id_fc) {
+    public Player updatePlayer(Player player) {
+
         try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("UPDATE  players SET name_p=?, age=?, id_fc=? " +
                 "WHERE id_p=?")) {
-            preparedStatement.setString(1, name);
-            preparedStatement.setInt(2, age);
-            preparedStatement.setInt(3, id_fc);
-            preparedStatement.setInt(4, id);
+            preparedStatement.setString(1, player.getNameP());
+            preparedStatement.setInt(2, player.getAge());
+            preparedStatement.setInt(3, player.getIdFootballClub());
+            preparedStatement.setInt(4, player.getIdP());
             preparedStatement.execute();
         } catch (SQLException e) {
             System.out.println("Can't execute the update query!" + e.getMessage());
         }
-
+        return player;
     }
 
 }
