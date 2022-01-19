@@ -1,5 +1,6 @@
 package com.company.model;
 
+import java.sql.SQLException;
 import java.time.LocalDate;
 
 public class Player {
@@ -61,6 +62,10 @@ public class Player {
 
     @Override
     public String toString() {
-        return String.format("Player: id_p = %s,name_p =%s, age =%s,  date_of_birth =%s, club_name=%s", idP, nameP, age, dateOfBirth, footballClub.getNameFc());
+        if (footballClub != null) {
+            return String.format("Player: id_p = %s,name_p =%s, age =%s,  date_of_birth =%s, club_name=%s", idP, nameP, age, dateOfBirth, footballClub.getNameFc());
+        } else {
+            return "FootballClus is not exist!";
+        }
     }
 }

@@ -73,7 +73,9 @@ public class PlayerRepository {
                 "WHERE id_p=?")) {
             preparedStatement.setString(1, player.getNameP());
             preparedStatement.setInt(2, player.getAge());
-            preparedStatement.setInt(3, player.getIdFootballClub());
+            if (player.getFootballClub() != null) {
+                preparedStatement.setInt(3, player.getFootballClub().getIdFc());
+            }
             preparedStatement.setInt(4, player.getIdP());
             preparedStatement.execute();
         } catch (SQLException e) {
