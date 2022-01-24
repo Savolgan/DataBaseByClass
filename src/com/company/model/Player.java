@@ -62,10 +62,12 @@ public class Player {
 
     @Override
     public String toString() {
-        if (footballClub != null) {
-            return String.format("Player: id_p = %s,name_p =%s, age =%s,  date_of_birth =%s, club_name=%s", idP, nameP, age, dateOfBirth, footballClub.getNameFc());
-        } else {
-            return "FootballClus is not exist!";
-        }
+
+        return String.format("Player: id_p = %s,name_p =%s, age =%s, date_of_birth=%s,  club_name=%s, year_birth_of_club=%s",
+                idP, nameP, age, dateOfBirth,
+                footballClub.getNameFc() != null ? footballClub.getNameFc() : null,
+                footballClub.getYearBirth()!=null?footballClub.getYearBirth():null);
+
     }
+
 }

@@ -2,38 +2,79 @@ package com.company;
 
 import com.company.model.FootballClub;
 import com.company.model.Player;
+import com.company.repository.ConnectionHolder;
 import com.company.repository.FootballClubRepository;
 import com.company.repository.PlayerRepository;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 
 public class Main {
 
     public static void main(String[] args) throws SQLException {
-        //createPlayer();
-        Player player = PlayerRepository.getInstance().getByID(1);
-        System.out.println(player);
-        updatePlayer();
+        // Get player by his id:
+        try {
+            ConnectionHolder.getConnection().setAutoCommit(false);
+            Optional<Player> player = PlayerRepository.getInstance().getByID(5);
 
-        // createFootballClub();
-        //  FootballClub footballClub = FootballClubRepository.getInstance().getByID(1);
-        //System.out.println(footballClub);
-    }
+            ConnectionHolder.getConnection().commit();
+            System.out.println(player);
 
-    private static void createPlayer() throws SQLException {
-        Player player = new Player();
-        player.setNameP("Oooo");
-        player.setAge(55);
-        player.setDateOfBirth(LocalDate.of(1966, 10, 16));
-        PlayerRepository.getInstance().addPlayer(player);
-    }
+        } catch (Exception e) {
+            ConnectionHolder.getConnection().rollback();
+        } finally {
+            ConnectionHolder.getConnection().setAutoCommit(true);
+        }
 
-    private static void createFootballClub() {
-        FootballClub footballClub = new FootballClub();
-        footballClub.setNameFc("New");
-        footballClub.setYearBirth(5);
-        FootballClubRepository.getInstance().addFootballClub(footballClub);
+        // Create football club, then create player with football club id:
+        try {
+            ConnectionHolder.getConnection().setAutoCommit(false);
+
+            FootballClub footballClub = new FootballClub();
+            footballClub.setNameFc("Nnnnnn");
+            footballClub.setYearBirth(2015);
+            FootballClubRepository.getInstance().addFootballClub(footballClub);
+
+            Player player = new Player();
+            player.setNameP("Nnnnnnnn");
+            player.setAge(35);
+            player.setDateOfBirth(LocalDate.of(1997, 10, 16));
+            PlayerRepository.getInstance().addPlayer(player, footballClub);
+
+            ConnectionHolder.getConnection().commit();
+        } catch (Exception e) {
+            ConnectionHolder.getConnection().rollback();
+        } finally {
+            ConnectionHolder.getConnection().setAutoCommit(true);
+        }
+
+        // Get all players:
+        System.out.println("All players");
+        for (Player player : PlayerRepository.getInstance().getListOfPlayers()) {
+            System.out.println(player);
+        }
+
+        // Get all players of specific football club:
+        System.out.println("________________________________________________________________-------");
+        Optional<FootballClub> footballClub = FootballClubRepository.getInstance().getByID(3);
+        System.out.println("All players of football club " + footballClub);
+        for (Player player : PlayerRepository.getInstance().getListOfPlayersOfFootballClub(footballClub)) {
+            System.out.println(player);
+        }
+
+        System.out.println("________________________________________________________________-------");
+        System.out.println("Count of players of football club "+footballClub+" = "+PlayerRepository.getInstance().getCountOfPlayersOfFootballClub(footballClub));
+
+
+        List<FootballClub> footballClubs = FootballClubRepository.getInstance().getFootballClubsMore10Players(2);
+        System.out.println("_________________Football clubs that have players > n");
+        System.out.println(footballClubs);
+//        updatePlayer();
+//        Optional<FootballClub> footballClub = FootballClubRepository.getInstance().getByID(1);
+//        System.out.println(footballClub);
     }
 
     private static void updatePlayer() {

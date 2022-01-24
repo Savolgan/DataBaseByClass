@@ -19,7 +19,7 @@ public class PlayerService {
         return instance;
     }
 
-    public Player savePlayer(Player player) throws SQLException {
-        return PlayerRepository.getInstance().addPlayer(player);
-    }
+//    public Player savePlayer(Player player) throws SQLException {
+//        return PlayerRepository.getInstance().addPlayer(player);
+//    }
 }

@@ -1,10 +1,14 @@
 package com.company.repository;
 
+import com.company.model.FootballClub;
 import com.company.model.Player;
 
 import java.sql.*;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 public class PlayerRepository {
 
@@ -18,12 +22,13 @@ public class PlayerRepository {
     }
 
 
-    public Player addPlayer(Player player) throws SQLException {
+    public Player addPlayer(Player player, FootballClub footballClub) throws SQLException {
         try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("INSERT INTO players  " +
                 " ( name_p, age, id_fc, date_of_birth) VALUES (?, ?, ?,?)", Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setString(1, player.getNameP());
             preparedStatement.setInt(2, player.getAge());
-            preparedStatement.setInt(3, player.getFootballClub().getIdFc());
+            // preparedStatement.setInt(3, player.getFootballClub() != null ? player.getFootballClub().getIdFc() : 1);
+            preparedStatement.setInt(3, footballClub.getIdFc());
             preparedStatement.setDate(4, Date.valueOf(player.getDateOfBirth()));
             preparedStatement.execute();
 
@@ -42,28 +47,39 @@ public class PlayerRepository {
     }
 
 
-    public Player getByID(int id) {
-        Player player = null;
-        try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("SELECT id_p, name_p, age, id_fc, date_of_birth FROM players"
-                + " WHERE id_p=?")) {
+    public Optional<Player> getByID(int id) {
+
+        try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("SELECT p.id_p, p.name_p, p.age, p.id_fc, p.date_of_birth, " +
+                "f.id_fc, f.name_fc, f.year_birth " +
+                "FROM players p " +
+                "INNER JOIN foot_clubs f on p.id_fc=f.id_fc " +
+                "WHERE p.id_p=?")) {
             preparedStatement.setInt(1, id);
             ResultSet result = preparedStatement.executeQuery();
 
             if (result.next()) {
-                player = new Player();
+                Player player = new Player();
                 player.setIdP(result.getInt("id_p"));
-                player.setNameP(result.getNString("name_p"));
+                player.setNameP(result.getString("name_p"));
                 player.setAge(result.getInt("age"));
-
                 player.setDateOfBirth(Instant.ofEpochMilli(result.getDate("date_of_birth").getTime())
                         .atZone(ZoneId.systemDefault())
                         .toLocalDate());
-                player.setFootballClub(FootballClubRepository.getInstance().getByID(result.getInt("id_fc")));
+
+                if (result.getString("id_fc") != null) {
+                    FootballClub footballClub = new FootballClub();
+                    footballClub.setIdFc(result.getInt("id_fc"));
+                    footballClub.setNameFc(result.getNString("name_fc"));
+                    footballClub.setYearBirth(result.getInt("year_birth"));
+                    player.setFootballClub(footballClub);
+                }
+                return Optional.of(player);
             }
+
         } catch (SQLException e) {
             System.out.println(e.getMessage() + " Not getById");
         }
-        return player;
+        return Optional.empty();
     }
 
 
@@ -82,6 +98,89 @@ public class PlayerRepository {
             System.out.println("Can't execute the update query!" + e.getMessage());
         }
         return player;
+    }
+
+    public List<Player> getListOfPlayers() {
+        List<Player> listOfPlayers = new ArrayList<>();
+        try (ResultSet resultSet = ConnectionHolder.getConnection().createStatement().executeQuery("SELECT * FROM players")) {
+            while (resultSet.next()) {
+                Player player = new Player();
+                player.setIdP(resultSet.getInt("id_p"));
+                player.setNameP(resultSet.getString("name_p"));
+                player.setAge(resultSet.getInt("age"));
+
+                if (resultSet.getDate("date_of_birth") != null) {
+                    player.setDateOfBirth(Instant.ofEpochMilli(resultSet.getDate("date_of_birth").getTime())
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDate());
+                } else player.setDateOfBirth(null);
+
+                if (resultSet.getString("id_fc") != null) {
+                    Optional<FootballClub> optionalFootballClub = FootballClubRepository.getInstance().getByID(resultSet.getInt("id_fc"));
+                    if (optionalFootballClub.isPresent()) {
+                        player.setFootballClub(optionalFootballClub.get());
+                    }
+
+                }
+                listOfPlayers.add(player);
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return listOfPlayers;
+    }
+
+
+    public List<Player> getListOfPlayersOfFootballClub(Optional<FootballClub> footballClub) {
+        List<Player> listOfPlayersOfFootballClub = new ArrayList<>();
+        int idFootballClub = footballClub.get().getIdFc();
+
+        try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("SELECT * FROM players WHERE id_fc=?")) {
+            preparedStatement.setInt(1, idFootballClub);
+            ResultSet result = preparedStatement.executeQuery();
+            while (result.next()) {
+                Player player = new Player();
+                player.setIdP(result.getInt("id_p"));
+                player.setNameP(result.getString("name_p"));
+                player.setAge(result.getInt("age"));
+
+                if (result.getDate("date_of_birth") != null) {
+                    player.setDateOfBirth(Instant.ofEpochMilli(result.getDate("date_of_birth").getTime())
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDate());
+                } else player.setDateOfBirth(null);
+
+                if (result.getString("id_fc") != null) {
+                    Optional<FootballClub> optionalFootballClub = FootballClubRepository.getInstance().getByID(result.getInt("id_fc"));
+                    if (optionalFootballClub.isPresent()) {
+                        player.setFootballClub(optionalFootballClub.get());
+                    }
+                }
+                listOfPlayersOfFootballClub.add(player);
+            }
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return listOfPlayersOfFootballClub;
+    }
+
+    public int getCountOfPlayersOfFootballClub(Optional<FootballClub> footballClub) {
+        int countOfPlayers = 0;
+        int idFootballClub = footballClub.get().getIdFc();
+
+        try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("SELECT COUNT( id_fc )" +
+                "FROM players WHERE id_fc =?")) {
+            preparedStatement.setInt(1, idFootballClub);
+            ResultSet result = preparedStatement.executeQuery();
+            while (result.next()) {
+                countOfPlayers = result.getInt(1);
+            }
+
+        } catch (SQLException e) {
+           System.out.println(e.getMessage());
+        }
+        return countOfPlayers;
     }
 
 }

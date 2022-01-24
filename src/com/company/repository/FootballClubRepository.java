@@ -3,9 +3,13 @@ package com.company.repository;
 import com.company.model.FootballClub;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 
 public class FootballClubRepository {
+
     private static FootballClubRepository instance;
 
     public static FootballClubRepository getInstance() {
@@ -39,23 +43,60 @@ public class FootballClubRepository {
     }
 
 
-    public FootballClub getByID(int id) {
-        FootballClub footballClub = null;
+    public Optional<FootballClub> getByID(int id) {
+
         try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("SELECT id_fc,name_fc, year_birth FROM foot_clubs"
                 + " WHERE id_fc=?")) {
             preparedStatement.setInt(1, id);
             ResultSet result = preparedStatement.executeQuery();
 
             if (result.next()) {
+                FootballClub footballClub = null;
                 footballClub = new FootballClub();
                 footballClub.setIdFc(result.getInt("id_fc"));
                 footballClub.setNameFc(result.getNString("name_fc"));
                 footballClub.setYearBirth(result.getInt("year_birth"));
-
+                return Optional.of(footballClub);
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage() + " Not getById");
         }
-        return footballClub;
+        return Optional.empty();
+    }
+
+    public List<FootballClub> getFootballClubsMore10Players(int n) {
+        List<FootballClub> footballClubsList = new ArrayList<>();
+        int countOfPlayers = 0;
+        try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("SELECT * FROM foot_clubs")) {
+            ResultSet result = preparedStatement.executeQuery();
+            while (result.next()) {
+
+                try (PreparedStatement preparedStatement1 = ConnectionHolder.getConnection().prepareStatement("SELECT COUNT( id_fc )" +
+                        "FROM players WHERE id_fc =?")) {
+                    preparedStatement1.setInt(1, result.getInt(1));
+                    ResultSet result1 = preparedStatement1.executeQuery();
+                    while (result1.next()) {
+                        countOfPlayers = result1.getInt(1);
+
+                        if(countOfPlayers>n){
+
+                            FootballClub footballClub = null;
+                            footballClub = new FootballClub();
+                            footballClub.setIdFc(result.getInt("id_fc"));
+                            footballClub.setNameFc(result.getNString("name_fc"));
+                            footballClub.setYearBirth(result.getInt("year_birth"));
+                            footballClubsList.add(footballClub);
+                        }
+                    }
+                } catch (SQLException e) {
+                    System.out.println(e.getMessage());
+                }
+            }
+
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return footballClubsList;
     }
 }
