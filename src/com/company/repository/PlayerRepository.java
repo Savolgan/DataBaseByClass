@@ -131,9 +131,9 @@ public class PlayerRepository {
     }
 
 
-    public List<Player> getListOfPlayersOfFootballClub(Optional<FootballClub> footballClub) {
+    public List<Player> getListOfPlayersOfFootballClub(FootballClub footballClub) {
         List<Player> listOfPlayersOfFootballClub = new ArrayList<>();
-        int idFootballClub = footballClub.get().getIdFc();
+        int idFootballClub = footballClub.getIdFc();
 
         try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("SELECT * FROM players WHERE id_fc=?")) {
             preparedStatement.setInt(1, idFootballClub);
@@ -165,9 +165,9 @@ public class PlayerRepository {
         return listOfPlayersOfFootballClub;
     }
 
-    public int getCountOfPlayersOfFootballClub(Optional<FootballClub> footballClub) {
+    public int getCountOfPlayersOfFootballClub(FootballClub footballClub) {
         int countOfPlayers = 0;
-        int idFootballClub = footballClub.get().getIdFc();
+        int idFootballClub = footballClub.getIdFc();
 
         try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("SELECT COUNT( id_fc )" +
                 "FROM players WHERE id_fc =?")) {

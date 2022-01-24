@@ -64,7 +64,7 @@ public class FootballClubRepository {
         return Optional.empty();
     }
 
-    public List<FootballClub> getFootballClubsMore10Players(int n) {
+    public List<FootballClub> getFootballClubsMoreNPlayers(int n) {
         List<FootballClub> footballClubsList = new ArrayList<>();
         int countOfPlayers = 0;
         try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("SELECT * FROM foot_clubs")) {
