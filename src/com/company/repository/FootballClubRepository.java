@@ -1,6 +1,7 @@
 package com.company.repository;
 
 import com.company.model.FootballClub;
+import com.company.model.Player;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -67,7 +68,22 @@ public class FootballClubRepository {
     public List<FootballClub> getFootballClubsMoreNPlayers(int n) {
         List<FootballClub> footballClubsList = new ArrayList<>();
         int countOfPlayers = 0;
-        try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("SELECT * FROM foot_clubs")) {
+
+        try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("SELECT count(p.id_fc),f.name_fc FROM players p right join foot_clubs f on p.id_fc=f.id_fc GROUP BY p.id_fc")) {
+            ResultSet result = preparedStatement.executeQuery();
+            while (result.next()) {
+                if (result.getInt(1) > n) {
+                    FootballClub footballClub = null;
+                    footballClub = new FootballClub();
+                    footballClub.setNameFc(result.getNString("name_fc"));
+                    footballClubsList.add(footballClub);
+                }
+            }
+        } catch (SQLException e) {
+            e.getMessage();
+        }
+
+       /* try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("SELECT * FROM foot_clubs")) {
             ResultSet result = preparedStatement.executeQuery();
             while (result.next()) {
 
@@ -96,7 +112,7 @@ public class FootballClubRepository {
 
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-        }
+        }*/
         return footballClubsList;
     }
 }

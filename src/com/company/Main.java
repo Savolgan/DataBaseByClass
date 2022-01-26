@@ -59,7 +59,7 @@ public class Main {
 
         // Get all players of specific football club:
         System.out.println("________________________________________________________________-------");
-        Optional<FootballClub> footballClub = FootballClubRepository.getInstance().getByID(3);
+        Optional<FootballClub> footballClub = FootballClubRepository.getInstance().getByID(2);
         FootballClub footballClub2= footballClub.get();
         System.out.println("All players of football club " + footballClub2);
         for (Player player : PlayerRepository.getInstance().getListOfPlayersOfFootballClub(footballClub2)) {
@@ -70,9 +70,12 @@ public class Main {
         System.out.println("Count of players of football club "+footballClub+" = "+PlayerRepository.getInstance().getCountOfPlayersOfFootballClub(footballClub2));
 
 
-        List<FootballClub> footballClubs = FootballClubRepository.getInstance().getFootballClubsMoreNPlayers(2);
+        List<FootballClub> footballClubs = FootballClubRepository.getInstance().getFootballClubsMoreNPlayers(1);
         System.out.println("_________________Football clubs that have players > n");
-        System.out.println(footballClubs);
+
+        for(FootballClub footballClub1:footballClubs) {
+            System.out.println(footballClub1 );
+        }
 //        updatePlayer();
 //        Optional<FootballClub> footballClub = FootballClubRepository.getInstance().getByID(1);
 //        System.out.println(footballClub);
