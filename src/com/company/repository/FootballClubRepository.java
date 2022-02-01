@@ -1,9 +1,14 @@
 package com.company.repository;
 
+import com.company.annotation.Column;
 import com.company.model.FootballClub;
 import com.company.model.Player;
 
+import java.lang.reflect.Field;
 import java.sql.*;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -44,7 +49,7 @@ public class FootballClubRepository {
     }
 
 
-    public Optional<FootballClub> getByID(int id) {
+    public Optional<FootballClub> getByID(int id) throws IllegalAccessException {
 
         try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("SELECT id_fc,name_fc, year_birth FROM foot_clubs"
                 + " WHERE id_fc=?")) {
@@ -52,69 +57,58 @@ public class FootballClubRepository {
             ResultSet result = preparedStatement.executeQuery();
 
             if (result.next()) {
-                FootballClub footballClub = null;
-                footballClub = new FootballClub();
-                footballClub.setIdFc(result.getInt("id_fc"));
-                footballClub.setNameFc(result.getNString("name_fc"));
-                footballClub.setYearBirth(result.getInt("year_birth"));
-                return Optional.of(footballClub);
+                return Optional.of(mapResultSetToFootballClub(result));
             }
+
         } catch (SQLException e) {
             System.out.println(e.getMessage() + " Not getById");
         }
         return Optional.empty();
     }
 
-    public List<FootballClub> getFootballClubsMoreNPlayers(int n) {
+
+    public List<FootballClub> getFootballClubsMoreNPlayers(int n) throws IllegalAccessException {
         List<FootballClub> footballClubsList = new ArrayList<>();
-        int countOfPlayers = 0;
 
         try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("SELECT count(p.id_fc),f.name_fc FROM players p right " +
                 "join foot_clubs f on p.id_fc=f.id_fc GROUP BY p.id_fc HAVING count(p.id_fc)>?")) {
-            preparedStatement.setInt(1,n);
+            preparedStatement.setInt(1, n);
             ResultSet result = preparedStatement.executeQuery();
+
             while (result.next()) {
-
-                   FootballClub footballClub = null;
-                    footballClub = new FootballClub();
-                    footballClub.setNameFc(result.getNString("name_fc"));
-                    footballClubsList.add(footballClub);
-
+                footballClubsList.add(mapResultSetToFootballClub(result));
             }
         } catch (SQLException e) {
-            e.getMessage();
+            System.out.println(e.getMessage() + "Can't execute query");
         }
+        return footballClubsList;
 
-       /* try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("SELECT * FROM foot_clubs")) {
-            ResultSet result = preparedStatement.executeQuery();
-            while (result.next()) {
+    }
 
-                try (PreparedStatement preparedStatement1 = ConnectionHolder.getConnection().prepareStatement("SELECT COUNT( id_fc )" +
-                        "FROM players WHERE id_fc =?")) {
-                    preparedStatement1.setInt(1, result.getInt(1));
-                    ResultSet result1 = preparedStatement1.executeQuery();
-                    while (result1.next()) {
-                        countOfPlayers = result1.getInt(1);
+    private FootballClub mapResultSetToFootballClub(ResultSet result) throws SQLException, IllegalAccessException {
 
-                        if(countOfPlayers>n){
+        FootballClub footballClub = new FootballClub();
 
-                            FootballClub footballClub = null;
-                            footballClub = new FootballClub();
-                            footballClub.setIdFc(result.getInt("id_fc"));
-                            footballClub.setNameFc(result.getNString("name_fc"));
-                            footballClub.setYearBirth(result.getInt("year_birth"));
-                            footballClubsList.add(footballClub);
-                        }
-                    }
-                } catch (SQLException e) {
-                    System.out.println(e.getMessage());
+        for (Field field : FootballClub.class.getDeclaredFields()) {
+            if (field.isAnnotationPresent(Column.class)) {
+                field.setAccessible(true);
+                Column column = field.getAnnotation(Column.class);
+                String columnName = column.value();
+                Object value = null;
+                if (field.getGenericType() == String.class) {
+                    value = result.getString(columnName);
+                } else if (field.getGenericType() == Integer.class) {
+                    value = result.getInt(columnName);
+                } else if (field.getGenericType() == LocalDate.class) {
+                    value = Instant.ofEpochMilli(result.getDate("date_of_birth").getTime())
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDate();
                 }
+                field.set(footballClub, value);
             }
 
-
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }*/
-        return footballClubsList;
+        }
+        return footballClub;
     }
+
 }

@@ -1,10 +1,15 @@
 package com.company.repository;
 
+import com.company.annotation.Column;
+import com.company.annotation.MaxLength;
 import com.company.model.FootballClub;
 import com.company.model.Player;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.sql.*;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,11 +28,31 @@ public class PlayerRepository {
 
 
     public Player addPlayer(Player player, FootballClub footballClub) throws SQLException {
+
         try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("INSERT INTO players  " +
                 " ( name_p, age, id_fc, date_of_birth) VALUES (?, ?, ?,?)", Statement.RETURN_GENERATED_KEYS)) {
-            preparedStatement.setString(1, player.getNameP());
+
+            String settingNamePlayer = player.getNameP();
+
+            Field[] fields = Player.class.getDeclaredFields();
+            for (int i = 0; i < fields.length; ++i) {
+                if (fields[i].isAnnotationPresent(MaxLength.class)) {
+                    MaxLength maxLength = fields[i].getAnnotation(MaxLength.class);
+                    int columnLength = maxLength.maxlength();
+                    String columnName = fields[i].getName();
+                    String typeOfColumn= fields[i].getGenericType().toString();
+                  try {
+                      if (typeOfColumn.substring(typeOfColumn.length() - 6).equals("String") && settingNamePlayer.length() <= columnLength) {
+                          preparedStatement.setString(1, player.getNameP());
+                      }
+                  }
+                  catch (SQLException e){
+                      System.out.println(e.getMessage()+ "The langth of player name is not match!");
+                  }
+                }
+            }
+
             preparedStatement.setInt(2, player.getAge());
-            // preparedStatement.setInt(3, player.getFootballClub() != null ? player.getFootballClub().getIdFc() : 1);
             preparedStatement.setInt(3, footballClub.getIdFc());
             preparedStatement.setDate(4, Date.valueOf(player.getDateOfBirth()));
             preparedStatement.execute();
@@ -47,7 +72,7 @@ public class PlayerRepository {
     }
 
 
-    public Optional<Player> getByID(int id) {
+    public Optional<Player> getByID(int id) throws IllegalAccessException {
 
         try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("SELECT p.id_p, p.name_p, p.age, p.id_fc, p.date_of_birth, " +
                 "f.id_fc, f.name_fc, f.year_birth " +
@@ -58,22 +83,7 @@ public class PlayerRepository {
             ResultSet result = preparedStatement.executeQuery();
 
             if (result.next()) {
-                Player player = new Player();
-                player.setIdP(result.getInt("id_p"));
-                player.setNameP(result.getString("name_p"));
-                player.setAge(result.getInt("age"));
-                player.setDateOfBirth(Instant.ofEpochMilli(result.getDate("date_of_birth").getTime())
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDate());
-
-                if (result.getString("id_fc") != null) {
-                    FootballClub footballClub = new FootballClub();
-                    footballClub.setIdFc(result.getInt("id_fc"));
-                    footballClub.setNameFc(result.getNString("name_fc"));
-                    footballClub.setYearBirth(result.getInt("year_birth"));
-                    player.setFootballClub(footballClub);
-                }
-                return Optional.of(player);
+                return Optional.of(mapResultSetToPlayer(result));
             }
 
         } catch (SQLException e) {
@@ -85,14 +95,18 @@ public class PlayerRepository {
 
     public Player updatePlayer(Player player) {
 
-        try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("UPDATE  players SET name_p=?, age=?, id_fc=? " +
-                "WHERE id_p=?")) {
+        //  "UPDATE  players SET name_p=?, age=?, id_fc=? WHERE id_p=?"
+        String query = "UPDATE players SET " + getAllColumns() + " WHERE id_p=?";
+        System.out.println(query);
+        try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement(String.valueOf(query))) {
             preparedStatement.setString(1, player.getNameP());
             preparedStatement.setInt(2, player.getAge());
             if (player.getFootballClub() != null) {
                 preparedStatement.setInt(3, player.getFootballClub().getIdFc());
             }
-            preparedStatement.setInt(4, player.getIdP());
+            preparedStatement.setDate(4, Date.valueOf(player.getDateOfBirth()));
+            preparedStatement.setInt(5, player.getIdP());
+
             preparedStatement.execute();
         } catch (SQLException e) {
             System.out.println("Can't execute the update query!" + e.getMessage());
@@ -100,62 +114,37 @@ public class PlayerRepository {
         return player;
     }
 
-    public List<Player> getListOfPlayers() {
+
+    public List<Player> getListOfPlayers() throws IllegalAccessException {
         List<Player> listOfPlayers = new ArrayList<>();
-        try (ResultSet resultSet = ConnectionHolder.getConnection().createStatement().executeQuery("SELECT * FROM players")) {
-            while (resultSet.next()) {
+        String query = "SELECT" + getAllColumns() + "f.id_fc, f.name_fc, f.year_birth FROM players p INNER JOIN foot_clubs f on p.id_fc=f.id_fc ";
+        try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement(query)) {
+            ResultSet result = preparedStatement.executeQuery();
+            while (result.next()) {
                 Player player = new Player();
-                player.setIdP(resultSet.getInt("id_p"));
-                player.setNameP(resultSet.getString("name_p"));
-                player.setAge(resultSet.getInt("age"));
-
-                if (resultSet.getDate("date_of_birth") != null) {
-                    player.setDateOfBirth(Instant.ofEpochMilli(resultSet.getDate("date_of_birth").getTime())
-                            .atZone(ZoneId.systemDefault())
-                            .toLocalDate());
-                } else player.setDateOfBirth(null);
-
-                if (resultSet.getString("id_fc") != null) {
-                    Optional<FootballClub> optionalFootballClub = FootballClubRepository.getInstance().getByID(resultSet.getInt("id_fc"));
-                    if (optionalFootballClub.isPresent()) {
-                        player.setFootballClub(optionalFootballClub.get());
-                    }
-
-                }
+                player = mapResultSetToPlayer(result);
                 listOfPlayers.add(player);
             }
         } catch (SQLException e) {
-            System.out.println(e);
+            System.out.println(e + "Exception!!!!");
         }
         return listOfPlayers;
     }
 
 
-    public List<Player> getListOfPlayersOfFootballClub(FootballClub footballClub) {
+    public List<Player> getListOfPlayersOfFootballClub(FootballClub footballClub) throws IllegalAccessException {
         List<Player> listOfPlayersOfFootballClub = new ArrayList<>();
         int idFootballClub = footballClub.getIdFc();
-
-        try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("SELECT * FROM players WHERE id_fc=?")) {
+        String query;
+        query = "SELECT " + getAllColumns() + " f.id_fc, f.name_fc, f.year_birth FROM players p INNER JOIN foot_clubs f on p.id_fc=f.id_fc WHERE f.id_fc=?";
+        // System.out.println("QQ" + query);
+        try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement(query)) {
             preparedStatement.setInt(1, idFootballClub);
             ResultSet result = preparedStatement.executeQuery();
+
             while (result.next()) {
                 Player player = new Player();
-                player.setIdP(result.getInt("id_p"));
-                player.setNameP(result.getString("name_p"));
-                player.setAge(result.getInt("age"));
-
-                if (result.getDate("date_of_birth") != null) {
-                    player.setDateOfBirth(Instant.ofEpochMilli(result.getDate("date_of_birth").getTime())
-                            .atZone(ZoneId.systemDefault())
-                            .toLocalDate());
-                } else player.setDateOfBirth(null);
-
-                if (result.getString("id_fc") != null) {
-                    Optional<FootballClub> optionalFootballClub = FootballClubRepository.getInstance().getByID(result.getInt("id_fc"));
-                    if (optionalFootballClub.isPresent()) {
-                        player.setFootballClub(optionalFootballClub.get());
-                    }
-                }
+                player = mapResultSetToPlayer(result);
                 listOfPlayersOfFootballClub.add(player);
             }
 
@@ -181,6 +170,60 @@ public class PlayerRepository {
             System.out.println(e.getMessage());
         }
         return countOfPlayers;
+    }
+
+    private Player mapResultSetToPlayer(ResultSet result) throws SQLException, IllegalAccessException {
+        Player player = new Player();
+        for (Field field : Player.class.getDeclaredFields()) {
+            if (field.isAnnotationPresent(Column.class)) {
+                field.setAccessible(true);
+                Column column = field.getAnnotation(Column.class);
+                String columnName = column.value();
+                Object value = null;
+                if (field.getGenericType() == String.class) {
+                    value = result.getString(columnName);
+                } else if (field.getGenericType() == Integer.class) {
+                    value = result.getInt(columnName);
+                } else if (field.getGenericType() == LocalDate.class) {
+                    value = Instant.ofEpochMilli(result.getDate("date_of_birth").getTime())
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDate();
+                } else {
+                    FootballClub footballClub = new FootballClub();
+                    footballClub.setIdFc(result.getInt("id_fc"));
+                    footballClub.setNameFc(result.getNString("name_fc"));
+                    footballClub.setYearBirth(result.getInt("year_birth"));
+                    value = footballClub;
+                }
+                field.set(player, value);
+            }
+        }
+        return player;
+    }
+
+    public void s() {
+        getAllColumns();
+    }
+
+    private String getAllColumns() {
+        StringBuilder result = new StringBuilder();
+        for (Field field : Player.class.getDeclaredFields()) {
+            if (field.isAnnotationPresent(Column.class)) {
+                field.setAccessible(true);
+                Column column = field.getAnnotation(Column.class);
+                String columnName = column.value();
+
+                if (!columnName.equals("footballClub")) {
+                    // System.out.println(columnName);
+                    result.append(" p.");
+                    result.append(columnName);
+                    result.append(", ");
+
+                }
+            }
+        }
+        System.out.println(result);
+        return result.toString();
     }
 
 }

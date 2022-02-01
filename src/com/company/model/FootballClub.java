@@ -1,8 +1,17 @@
 package com.company.model;
 
+import com.company.annotation.Column;
+import com.company.annotation.MaxLength;
+
 public class FootballClub {
+    @Column("id_fc")
     private Integer idFc;
+
+    @Column("name_fc")
+    @MaxLength(maxlength = 30)
     private String nameFc;
+
+    @Column("year_birth")
     private Integer yearBirth;
 
     public Integer getIdFc() {

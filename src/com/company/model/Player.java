@@ -1,14 +1,28 @@
 package com.company.model;
 
-import java.sql.SQLException;
+import com.company.annotation.Column;
+import com.company.annotation.MaxLength;
+
 import java.time.LocalDate;
 
 public class Player {
+    @Column("id_p")
     private Integer idP;
+
+    @Column("name_p")
+    @MaxLength(maxlength = 30)
     private String nameP;
+
+    @Column("age")
     private Integer age;
-    private Integer idFootballClub;
+
+    @Column("date_of_birth")
     private LocalDate dateOfBirth;
+
+    @Column("id_fc")
+    private Integer idFootballClub;
+
+    @Column("footballClub")
     private FootballClub footballClub;
 
     public Integer getIdP() {
@@ -66,7 +80,7 @@ public class Player {
         return String.format("Player: id_p = %s,name_p =%s, age =%s, date_of_birth=%s,  club_name=%s, year_birth_of_club=%s",
                 idP, nameP, age, dateOfBirth,
                 footballClub.getNameFc() != null ? footballClub.getNameFc() : null,
-                footballClub.getYearBirth()!=null?footballClub.getYearBirth():null);
+                footballClub.getYearBirth() != null ? footballClub.getYearBirth() : null);
 
     }
 
