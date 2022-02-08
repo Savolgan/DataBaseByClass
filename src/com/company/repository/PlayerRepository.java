@@ -39,16 +39,15 @@ public class PlayerRepository {
                 if (fields[i].isAnnotationPresent(MaxLength.class)) {
                     MaxLength maxLength = fields[i].getAnnotation(MaxLength.class);
                     int columnLength = maxLength.maxlength();
-                    String columnName = fields[i].getName();
-                    String typeOfColumn= fields[i].getGenericType().toString();
-                  try {
-                      if (typeOfColumn.substring(typeOfColumn.length() - 6).equals("String") && settingNamePlayer.length() <= columnLength) {
-                          preparedStatement.setString(1, player.getNameP());
-                      }
-                  }
-                  catch (SQLException e){
-                      System.out.println(e.getMessage()+ "The langth of player name is not match!");
-                  }
+                    try {
+                        if (fields[i].getGenericType() == String.class && settingNamePlayer.length() <= columnLength) {
+                            preparedStatement.setString(1, settingNamePlayer);
+                        } else {
+                            throw new SQLException();
+                        }
+                    } catch (SQLException e) {
+                        System.out.println(e.getMessage() + "The langth of player name is not match!");
+                    }
                 }
             }
 
@@ -93,13 +92,29 @@ public class PlayerRepository {
     }
 
 
-    public Player updatePlayer(Player player) {
+    public Player updatePlayer(Player player) throws NoSuchFieldException, SQLException {
 
-        //  "UPDATE  players SET name_p=?, age=?, id_fc=? WHERE id_p=?"
-        String query = "UPDATE players SET " + getAllColumns() + " WHERE id_p=?";
-        System.out.println(query);
+        String query =  "UPDATE  players SET name_p=?, age=?, id_fc=?, date_of_birth=? WHERE id_p=?";
+
         try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement(String.valueOf(query))) {
-            preparedStatement.setString(1, player.getNameP());
+
+            Field field = Player.class.getDeclaredField("nameP");
+
+            if (field.isAnnotationPresent(MaxLength.class)) {
+                MaxLength maxLength = field.getAnnotation(MaxLength.class);
+                int columnLength = maxLength.maxlength();
+
+                try {
+                    if (field.getGenericType() == String.class && player.getNameP().length() <= columnLength) {
+                        preparedStatement.setString(1, player.getNameP());
+                    } else {
+                        throw new SQLException();
+                    }
+                } catch (SQLException e) {
+                    System.out.println(e.getMessage() + "The langth of player name is not match!");
+                }
+
+            }
             preparedStatement.setInt(2, player.getAge());
             if (player.getFootballClub() != null) {
                 preparedStatement.setInt(3, player.getFootballClub().getIdFc());
@@ -201,9 +216,9 @@ public class PlayerRepository {
         return player;
     }
 
-    public void s() {
-        getAllColumns();
-    }
+//    public void s() {
+//        getAllColumns();
+//    }
 
     private String getAllColumns() {
         StringBuilder result = new StringBuilder();

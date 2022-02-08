@@ -22,7 +22,7 @@ public class FootClubService {
         return instance;
     }
 
-    public FootballClub saveFootClub(FootballClub footballClub) throws SQLException {
+    public FootballClub saveFootClub(FootballClub footballClub) throws SQLException, NoSuchFieldException {
         return FootballClubRepository.getInstance().addFootballClub(footballClub);
     }
 }

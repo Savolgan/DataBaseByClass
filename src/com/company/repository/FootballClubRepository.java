@@ -1,6 +1,7 @@
 package com.company.repository;
 
 import com.company.annotation.Column;
+import com.company.annotation.MaxLength;
 import com.company.model.FootballClub;
 import com.company.model.Player;
 
@@ -26,11 +27,29 @@ public class FootballClubRepository {
     }
 
 
-    public FootballClub addFootballClub(FootballClub footballClub) {
+    public FootballClub addFootballClub(FootballClub footballClub) throws NoSuchFieldException {
 
         try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("INSERT INTO foot_clubs  " +
                 " ( name_fc,year_birth) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS)) {
-            preparedStatement.setString(1, footballClub.getNameFc());
+
+            Field field = Player.class.getDeclaredField("nameP");
+
+            if (field.isAnnotationPresent(MaxLength.class)) {
+                MaxLength maxLength = field.getAnnotation(MaxLength.class);
+                int columnLength = maxLength.maxlength();
+
+                try {
+                    if (field.getGenericType() == String.class && footballClub.getNameFc().length() <= columnLength) {
+                        preparedStatement.setString(1, footballClub.getNameFc());
+                    } else {
+                        throw new SQLException();
+                    }
+                } catch (SQLException e) {
+                    System.out.println(e.getMessage() + "The langth of player name is not match!");
+                }
+
+            }
+
             preparedStatement.setInt(2, footballClub.getYearBirth());
             preparedStatement.execute();
 

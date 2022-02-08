@@ -15,7 +15,7 @@ import java.util.Optional;
 
 public class Main {
 
-    public static void main(String[] args) throws SQLException, IllegalAccessException {
+    public static void main(String[] args) throws SQLException, IllegalAccessException, NoSuchFieldException {
 
 //        Optional<FootballClub> footballClub = FootballClubRepository.getInstance().getByID(3);
 //        System.out.println(footballClub);
@@ -34,18 +34,18 @@ public class Main {
 
         // System.out.println(PlayerRepository.getInstance().getCountOfPlayersOfFootballClub(footballClub.get()));
 
-        insertPlayer();
+        //insertPlayer();
 
-        // updatePlayer();
+         updateSomeFieldsPlayer();
 
-        PlayerRepository.getInstance().s();
+
 
     }
 
-    private static void updatePlayer() throws SQLException {
+    private static void updateSomeFieldsPlayer() throws SQLException, NoSuchFieldException {
         Player player = new Player();
-        player.setNameP("Player Tommmm");
-        player.setAge(55);
+        player.setNameP("Player InsertAnnot");
+        player.setAge(25);
         player.setIdP(4);
         player.setIdFootballClub(2);
         FootballClub footballClub = new FootballClub();
@@ -69,5 +69,7 @@ public class Main {
         Optional<FootballClub> footballClub1 = FootballClubRepository.getInstance().getByID(3);
         PlayerRepository.getInstance().addPlayer(player, footballClub1.get());
     }
+
+
 
 }
