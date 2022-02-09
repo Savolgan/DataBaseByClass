@@ -216,9 +216,9 @@ public class PlayerRepository {
         return player;
     }
 
-//    public void s() {
-//        getAllColumns();
-//    }
+    public void s() {
+        getAllColumns();
+    }
 
     private String getAllColumns() {
         StringBuilder result = new StringBuilder();
@@ -237,6 +237,7 @@ public class PlayerRepository {
                 }
             }
         }
+        //result.deleteCharAt(result.length()-2);
         System.out.println(result);
         return result.toString();
     }

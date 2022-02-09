@@ -28,9 +28,10 @@ public class FootballClubRepository {
 
 
     public FootballClub addFootballClub(FootballClub footballClub) throws NoSuchFieldException {
-
-        try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("INSERT INTO foot_clubs  " +
-                " ( name_fc,year_birth) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+        String listOfColumns = getAllColumns();
+        listOfColumns = listOfColumns.replace("id_fc,", "");
+        String query = "INSERT INTO foot_clubs  (" + listOfColumns + ") VALUES (" + setSignsOfQuestions(listOfColumns) + ")";
+        try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 
             Field field = Player.class.getDeclaredField("nameP");
 
@@ -129,5 +130,42 @@ public class FootballClubRepository {
         }
         return footballClub;
     }
+
+
+    private String getAllColumns() {
+        StringBuilder allColumns = new StringBuilder();
+        for (Field field : FootballClub.class.getDeclaredFields()) {
+            field.setAccessible(true);
+            if (field.isAnnotationPresent(Column.class)) {
+                Column column = field.getAnnotation(Column.class);
+                String columnName = column.value();
+                // System.out.println(columnName);
+                allColumns.append(columnName);
+                allColumns.append(", ");
+            }
+        }
+        allColumns.deleteCharAt(allColumns.length() - 2);
+        System.out.println(allColumns);
+        return allColumns.toString();
+    }
+
+    private String setSignsOfQuestions(String allColumns) {
+        StringBuilder stringOfQuestions = new StringBuilder();
+        String[] stringOfColumns = allColumns.split(",");
+
+        for (int i = 0; i < stringOfColumns.length; ++i) {
+            stringOfQuestions.append("?, ");
+        }
+
+        stringOfQuestions.deleteCharAt(stringOfQuestions.length() - 2);
+        System.out.println(stringOfQuestions);
+        return stringOfQuestions.toString();
+
+    }
+
+//    public void s() {
+//        String ss = getAllColumns();
+//        setSignsOfQuestions(ss);
+//    }
 
 }

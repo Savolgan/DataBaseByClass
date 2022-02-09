@@ -36,10 +36,11 @@ public class Main {
 
         //insertPlayer();
 
-         updateSomeFieldsPlayer();
+        //updateSomeFieldsPlayer();
 
-
-
+       // PlayerRepository.getInstance().s();
+       // FootballClubRepository.getInstance().s();
+        insertFootClub();
     }
 
     private static void updateSomeFieldsPlayer() throws SQLException, NoSuchFieldException {
@@ -70,5 +71,11 @@ public class Main {
         PlayerRepository.getInstance().addPlayer(player, footballClub1.get());
     }
 
+    private static void insertFootClub() throws NoSuchFieldException {
+        FootballClub footballClub=new FootballClub();
+        footballClub.setNameFc("Last footClub");
+        footballClub.setYearBirth(2005);
+        FootballClubRepository.getInstance().addFootballClub(footballClub);
+    }
 
 }
