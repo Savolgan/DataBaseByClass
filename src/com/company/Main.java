@@ -9,89 +9,76 @@ import com.company.repository.PlayerRepository;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class Main {
 
-    public static void main(String[] args) throws SQLException {
-        // Get player by his id:
-        try {
-            ConnectionHolder.getConnection().setAutoCommit(false);
-            Optional<Player> player = PlayerRepository.getInstance().getByID(5);
+    public static void main(String[] args) throws SQLException, IllegalAccessException, NoSuchFieldException {
 
-            ConnectionHolder.getConnection().commit();
-            System.out.println(player);
-
-        } catch (Exception e) {
-            ConnectionHolder.getConnection().rollback();
-        } finally {
-            ConnectionHolder.getConnection().setAutoCommit(true);
-        }
-
-        // Create football club, then create player with football club id:
-        try {
-            ConnectionHolder.getConnection().setAutoCommit(false);
-
-            FootballClub footballClub = new FootballClub();
-            footballClub.setNameFc("Nnnnnn");
-            footballClub.setYearBirth(2015);
-            FootballClubRepository.getInstance().addFootballClub(footballClub);
-
-            Player player = new Player();
-            player.setNameP("Nnnnnnnn");
-            player.setAge(35);
-            player.setDateOfBirth(LocalDate.of(1997, 10, 16));
-            PlayerRepository.getInstance().addPlayer(player, footballClub);
-
-            ConnectionHolder.getConnection().commit();
-        } catch (Exception e) {
-            ConnectionHolder.getConnection().rollback();
-        } finally {
-            ConnectionHolder.getConnection().setAutoCommit(true);
-        }
-
-        // Get all players:
-        System.out.println("All players");
-        for (Player player : PlayerRepository.getInstance().getListOfPlayers()) {
-            System.out.println(player);
-        }
-
-        // Get all players of specific football club:
-        System.out.println("________________________________________________________________-------");
-        Optional<FootballClub> footballClub = FootballClubRepository.getInstance().getByID(2);
-        FootballClub footballClub2= footballClub.get();
-        System.out.println("All players of football club " + footballClub2);
-        for (Player player : PlayerRepository.getInstance().getListOfPlayersOfFootballClub(footballClub2)) {
-            System.out.println(player);
-        }
-
-        System.out.println("________________________________________________________________-------");
-        System.out.println("Count of players of football club "+footballClub+" = "+PlayerRepository.getInstance().getCountOfPlayersOfFootballClub(footballClub2));
-
-
-        List<FootballClub> footballClubs = FootballClubRepository.getInstance().getFootballClubsMoreNPlayers(1);
-        System.out.println("_________________Football clubs that have players > n");
-
-        for(FootballClub footballClub1:footballClubs) {
-            System.out.println(footballClub1 );
-        }
-//        updatePlayer();
-//        Optional<FootballClub> footballClub = FootballClubRepository.getInstance().getByID(1);
+//        Optional<FootballClub> footballClub = FootballClubRepository.getInstance().getByID(3);
 //        System.out.println(footballClub);
+//
+//        Optional<Player> player = PlayerRepository.getInstance().getByID(5);
+//        System.out.println(player);
+
+//        List<Player> players = new ArrayList<>();
+//        players = PlayerRepository.getInstance().getListOfPlayers();
+//        System.out.println(players);
+
+//       List<Player> playersOfFootClub = new ArrayList<>();
+//        Optional<FootballClub> footballClub=FootballClubRepository.getInstance().getByID(3);
+//        playersOfFootClub=PlayerRepository.getInstance().getListOfPlayersOfFootballClub(footballClub.get());
+//       System.out.println(playersOfFootClub);
+//
+//         System.out.println(PlayerRepository.getInstance().getCountOfPlayersOfFootballClub(footballClub.get()));
+
+
+
+        updateSomeFieldsPlayer();
+
+//        PlayerRepository.getInstance().s();
+//        System.out.println("_________________________--");
+
+        //insertPlayer();
+       // FootballClubRepository.getInstance().s();
+       // insertFootClub();
     }
 
-    private static void updatePlayer() {
+    private static void updateSomeFieldsPlayer() throws SQLException, NoSuchFieldException {
         Player player = new Player();
-        player.setNameP("Update_player");
+        player.setNameP("Player UpdateAnnot");
+        player.setAge(25);
+        player.setIdP(4);
+        player.setIdFootballClub(2);
+        FootballClub footballClub = new FootballClub();
+        footballClub.setIdFc(3);
+        player.setFootballClub(footballClub);
+        player.setDateOfBirth(LocalDate.of(1970, 10, 25));
+        PlayerRepository.getInstance().updatePlayer(player);
+    }
+
+    private static void insertPlayer() throws IllegalAccessException, SQLException {
+        Player player = new Player();
+        player.setNameP("Friday Player");
         player.setAge(55);
         player.setIdP(4);
         player.setIdFootballClub(2);
         FootballClub footballClub = new FootballClub();
         footballClub.setIdFc(3);
         player.setFootballClub(footballClub);
-        player.setDateOfBirth(LocalDate.of(1966, 10, 16));
-        PlayerRepository.getInstance().updatePlayer(player);
+        player.setDateOfBirth(LocalDate.of(1975, 10, 25));
+
+        Optional<FootballClub> footballClub1 = FootballClubRepository.getInstance().getByID(3);
+        PlayerRepository.getInstance().addPlayer(player, footballClub1.get());
+    }
+
+    private static void insertFootClub() throws NoSuchFieldException {
+        FootballClub footballClub=new FootballClub();
+        footballClub.setNameFc("Last footClub");
+        footballClub.setYearBirth(2005);
+        FootballClubRepository.getInstance().addFootballClub(footballClub);
     }
 
 }
