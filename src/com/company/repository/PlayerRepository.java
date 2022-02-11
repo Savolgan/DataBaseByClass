@@ -29,8 +29,11 @@ public class PlayerRepository {
 
     public Player addPlayer(Player player, FootballClub footballClub) throws SQLException {
 
-        try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("INSERT INTO players  " +
-                " ( name_p, age, id_fc, date_of_birth) VALUES (?, ?, ?,?)", Statement.RETURN_GENERATED_KEYS)) {
+        String listOfColumns = getAllColumns();
+        listOfColumns = listOfColumns.replace("id_p,", "");
+        String query = "INSERT INTO players  (" + listOfColumns + ") VALUES (" + setSignsOfQuestions(listOfColumns) + ")";
+
+        try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 
             String settingNamePlayer = player.getNameP();
 
@@ -52,8 +55,8 @@ public class PlayerRepository {
             }
 
             preparedStatement.setInt(2, player.getAge());
-            preparedStatement.setInt(3, footballClub.getIdFc());
-            preparedStatement.setDate(4, Date.valueOf(player.getDateOfBirth()));
+            preparedStatement.setDate(3, Date.valueOf(player.getDateOfBirth()));
+            preparedStatement.setInt(4, footballClub.getIdFc());
             preparedStatement.execute();
 
             try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
@@ -73,11 +76,20 @@ public class PlayerRepository {
 
     public Optional<Player> getByID(int id) throws IllegalAccessException {
 
-        try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("SELECT p.id_p, p.name_p, p.age, p.id_fc, p.date_of_birth, " +
-                "f.id_fc, f.name_fc, f.year_birth " +
+        String listOfColumns = getAllColumns();
+        String[] arrayOfColumnsName = listOfColumns.split(", ");
+        String prefListofColumns = "";
+        for (String s : arrayOfColumnsName) {
+            s = "p." + s;
+            prefListofColumns = prefListofColumns + s + ", ";
+        }
+
+        String query = "SELECT   " + prefListofColumns + "f.id_fc, f.name_fc, f.year_birth " +
                 "FROM players p " +
                 "INNER JOIN foot_clubs f on p.id_fc=f.id_fc " +
-                "WHERE p.id_p=?")) {
+                "WHERE p.id_p=?";
+
+        try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement(query)) {
             preparedStatement.setInt(1, id);
             ResultSet result = preparedStatement.executeQuery();
 
@@ -93,8 +105,20 @@ public class PlayerRepository {
 
 
     public Player updatePlayer(Player player) throws NoSuchFieldException, SQLException {
+        String listOfColumns = getAllColumns();
+        listOfColumns = listOfColumns.replace("id_p,", "");
+        String[] arrayOfColumnsName = listOfColumns.split(", ");
+        String query = "";
+        for (int i = 0; i < arrayOfColumnsName.length; i++) {
+            query = query + arrayOfColumnsName[i] + "=?,";
+        }
 
-        String query =  "UPDATE  players SET name_p=?, age=?, id_fc=?, date_of_birth=? WHERE id_p=?";
+        StringBuilder str = new StringBuilder(query);
+        str.deleteCharAt(str.length() - 1);
+        query = str.toString();
+
+        query = "UPDATE  players SET " + query + " WHERE id_p=?";
+        System.out.println(query);
 
         try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement(String.valueOf(query))) {
 
@@ -117,9 +141,9 @@ public class PlayerRepository {
             }
             preparedStatement.setInt(2, player.getAge());
             if (player.getFootballClub() != null) {
-                preparedStatement.setInt(3, player.getFootballClub().getIdFc());
+                preparedStatement.setInt(4, player.getFootballClub().getIdFc());
             }
-            preparedStatement.setDate(4, Date.valueOf(player.getDateOfBirth()));
+            preparedStatement.setDate(3, Date.valueOf(player.getDateOfBirth()));
             preparedStatement.setInt(5, player.getIdP());
 
             preparedStatement.execute();
@@ -132,7 +156,16 @@ public class PlayerRepository {
 
     public List<Player> getListOfPlayers() throws IllegalAccessException {
         List<Player> listOfPlayers = new ArrayList<>();
-        String query = "SELECT" + getAllColumns() + "f.id_fc, f.name_fc, f.year_birth FROM players p INNER JOIN foot_clubs f on p.id_fc=f.id_fc ";
+
+        String listOfColumns = getAllColumns();
+        String[] arrayOfColumnsName = listOfColumns.split(", ");
+        String prefListofColumns = "";
+        for (String s : arrayOfColumnsName) {
+            s = "p." + s;
+            prefListofColumns = prefListofColumns + s + ", ";
+        }
+
+        String query = "SELECT " + prefListofColumns + "f.id_fc, f.name_fc, f.year_birth FROM players p INNER JOIN foot_clubs f on p.id_fc=f.id_fc ";
         try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement(query)) {
             ResultSet result = preparedStatement.executeQuery();
             while (result.next()) {
@@ -150,9 +183,19 @@ public class PlayerRepository {
     public List<Player> getListOfPlayersOfFootballClub(FootballClub footballClub) throws IllegalAccessException {
         List<Player> listOfPlayersOfFootballClub = new ArrayList<>();
         int idFootballClub = footballClub.getIdFc();
+
+        String listOfColumns = getAllColumns();
+        String[] arrayOfColumnsName = listOfColumns.split(", ");
+        String prefListofColumns = "";
+        for (String s : arrayOfColumnsName) {
+            s = "p." + s;
+            prefListofColumns = prefListofColumns + s + ", ";
+        }
+
+
         String query;
-        query = "SELECT " + getAllColumns() + " f.id_fc, f.name_fc, f.year_birth FROM players p INNER JOIN foot_clubs f on p.id_fc=f.id_fc WHERE f.id_fc=?";
-        // System.out.println("QQ" + query);
+        query = "SELECT " + prefListofColumns + " f.id_fc, f.name_fc, f.year_birth FROM players p INNER JOIN foot_clubs f on p.id_fc=f.id_fc WHERE f.id_fc=?";
+
         try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement(query)) {
             preparedStatement.setInt(1, idFootballClub);
             ResultSet result = preparedStatement.executeQuery();
@@ -216,9 +259,10 @@ public class PlayerRepository {
         return player;
     }
 
-    public void s() {
-        getAllColumns();
-    }
+//    public void s() {
+//        String ss = getAllColumns();
+//        setSignsOfQuestions(ss);
+//    }
 
     private String getAllColumns() {
         StringBuilder result = new StringBuilder();
@@ -229,17 +273,29 @@ public class PlayerRepository {
                 String columnName = column.value();
 
                 if (!columnName.equals("footballClub")) {
-                    // System.out.println(columnName);
-                    result.append(" p.");
                     result.append(columnName);
                     result.append(", ");
 
                 }
             }
         }
-        //result.deleteCharAt(result.length()-2);
-        System.out.println(result);
+        result.deleteCharAt(result.length() - 2);
+        //System.out.println(result);
         return result.toString();
+    }
+
+    private String setSignsOfQuestions(String allColumns) {
+        StringBuilder stringOfQuestions = new StringBuilder();
+        String[] stringOfColumns = allColumns.split(",");
+
+        for (int i = 0; i < stringOfColumns.length; ++i) {
+            stringOfQuestions.append("?, ");
+        }
+
+        stringOfQuestions.deleteCharAt(stringOfQuestions.length() - 2);
+       // System.out.println(stringOfQuestions);
+        return stringOfQuestions.toString();
+
     }
 
 }

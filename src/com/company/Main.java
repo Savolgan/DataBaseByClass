@@ -31,21 +31,24 @@ public class Main {
 //        Optional<FootballClub> footballClub=FootballClubRepository.getInstance().getByID(3);
 //        playersOfFootClub=PlayerRepository.getInstance().getListOfPlayersOfFootballClub(footballClub.get());
 //       System.out.println(playersOfFootClub);
+//
+//         System.out.println(PlayerRepository.getInstance().getCountOfPlayersOfFootballClub(footballClub.get()));
 
-        // System.out.println(PlayerRepository.getInstance().getCountOfPlayersOfFootballClub(footballClub.get()));
+
+
+        updateSomeFieldsPlayer();
+
+//        PlayerRepository.getInstance().s();
+//        System.out.println("_________________________--");
 
         //insertPlayer();
-
-        //updateSomeFieldsPlayer();
-
-       // PlayerRepository.getInstance().s();
        // FootballClubRepository.getInstance().s();
-        insertFootClub();
+       // insertFootClub();
     }
 
     private static void updateSomeFieldsPlayer() throws SQLException, NoSuchFieldException {
         Player player = new Player();
-        player.setNameP("Player InsertAnnot");
+        player.setNameP("Player UpdateAnnot");
         player.setAge(25);
         player.setIdP(4);
         player.setIdFootballClub(2);
@@ -58,7 +61,7 @@ public class Main {
 
     private static void insertPlayer() throws IllegalAccessException, SQLException {
         Player player = new Player();
-        player.setNameP("Annot Player");
+        player.setNameP("Friday Player");
         player.setAge(55);
         player.setIdP(4);
         player.setIdFootballClub(2);

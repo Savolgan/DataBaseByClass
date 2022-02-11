@@ -70,9 +70,8 @@ public class FootballClubRepository {
 
 
     public Optional<FootballClub> getByID(int id) throws IllegalAccessException {
-
-        try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement("SELECT id_fc,name_fc, year_birth FROM foot_clubs"
-                + " WHERE id_fc=?")) {
+        String query = "SELECT "+getAllColumns()+"FROM foot_clubs WHERE id_fc=?";
+        try (PreparedStatement preparedStatement = ConnectionHolder.getConnection().prepareStatement(query)) {
             preparedStatement.setInt(1, id);
             ResultSet result = preparedStatement.executeQuery();
 
